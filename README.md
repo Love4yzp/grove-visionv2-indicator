@@ -5,14 +5,12 @@ This is a simple demo to show how to use the Grove Vision V2 and SenseCAP indica
 For Grove vision v2, navigate to the wiki page : 🤓[Using Grove Vision AI V2 with AT Commands](https://wiki.seeedstudio.com/grove_vision_ai_v2_at/)
 
 <div style="text-align: center;">
-<img src="https://github.com/Seeed-Projects/visionv2-indicator/assets/45476879/060bad95-ac13-46fd-a65f-c26e01e42b1d" width="480" height="auto">
+<img src="https://github.com/Seeed-Projects/grove-visionv2-indicator/assets/45476879/2bc16c8c-1a09-44a9-aefa-24ac830ab71a" width="480" height="auto">
 </div>
 
 The SenseCAP indicator get the result data and image from grove vision v2 via `UART` to draw the point, line and display the image.
 
-
-https://github.com/Seeed-Projects/visionv2-indicator/assets/45476879/152d6720-306d-4f59-886c-b976ab14111a
-
+https://github.com/Seeed-Projects/grove-visionv2-indicator/assets/45476879/75a35e7b-5f98-49f3-84b3-65873e9ef971
 
 Let's see the diagram in below:
 
