@@ -80,6 +80,7 @@ static void __json_event_handler(void* handler_args, esp_event_base_t base, int3
     switch (id) {
     case VIEW_EVENT_IMG: {
         unsigned char* img_data = (unsigned char*)event_data;
+        // ESP_LOGI(TAG,"Base64 IMG: %s",event_data);
         size_t jpegImageSize = decode_base64_image(img_data, jpegImage);
         if (!jpegImageSize) { // >0
             ESP_LOGE(TAG, "Failed to decode image");

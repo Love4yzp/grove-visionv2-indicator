@@ -4,13 +4,12 @@
 #include <Base64.h>
 #include <PacketSerial.h>
 #include <Seeed_Arduino_SSCMA.h>
-#include <Wire.h>
 
-#define _LOG 0 // Disable it if needed for high frequency
+#define _LOG 1 // Disable it if needed for high frequency
 #define pcSerial Serial
 
 SSCMA AI;
-#define ai_instance AI
+#define ai_instance AI // Using Serial way
 
 #include <SoftwareSerial.h>
 #define ESP_rxPin 17
@@ -93,8 +92,8 @@ void setup1() {
 #if _LOG
     pcSerial.begin(ESP32_COMM_BAUD_RATE);
     // pcSerial.begin(115200);
-    // while (!pcSerial)
-    //     ;
+    while (!pcSerial)
+        ;
     // pcSerial.println(compile_date);
     pcSerial.println("Setting ESP32 UART For inner RP2040");
 #endif

@@ -321,7 +321,7 @@ LV_ATTRIBUTE_FAST_MEM static lv_res_t decode_and_draw(lv_draw_ctx_t * draw_ctx, 
                 lv_img_decoder_close(&cdsc->dec_dsc);
                 LV_LOG_WARN("Image draw can't read the line");
                 lv_mem_buf_release(buf);
-                draw_cleanup(cdsc);
+                // draw_cleanup(cdsc);
                 draw_ctx->clip_area = clip_area_ori;
                 return LV_RES_INV;
             }
