@@ -91,16 +91,26 @@ again:
   else goto again;
 #endif
   AI.begin(&atSerial);
+#if _LOG
+  pcSerial.print("AI.name: ");
+  pcSerial.print(AI.name());
+  pcSerial.print("\n");
+  pcSerial.print("AI.info: ");
+  AI.info();
+  pcSerial.print(AI.info());
+  pcSerial.print("\n");
+  pcSerial.print("AI.ID: ");
+  AI.ID();
+  pcSerial.print(AI.ID());
+  pcSerial.print("\n");
+#endif
 }
 
 void setup1() {
 #if _LOG
   pcSerial.begin(ESP32_COMM_BAUD_RATE);
-  while(!pcSerial);
-  pcSerial.println(compile_date);
-  pcSerial.println("Setting ESP32 UART For inner RP2040");
-  pcSerial.printf("PIN_SERIAL2_RX: %d\n",PIN_SERIAL2_RX);
-  pcSerial.printf("PIN_SERIAL2_TX: %d\n",PIN_SERIAL2_TX);
+  while (!pcSerial)
+    ;
 #endif
   // Activate the communication inner device
   espSerial.setRX(ESP_rxPin);
@@ -109,6 +119,12 @@ void setup1() {
 
   myPacketSerial.setStream(&espSerial);
   myPacketSerial.setPacketHandler(&onPacketReceived);
+#if _LOG
+  pcSerial.println(compile_date);
+  pcSerial.println("Setting ESP32 UART For inner RP2040");
+  pcSerial.printf("PIN_SERIAL2_RX: %d\n", PIN_SERIAL2_RX);
+  pcSerial.printf("PIN_SERIAL2_TX: %d\n", PIN_SERIAL2_TX);
+#endif
 }
 
 void loop() {  // For UART Port
@@ -130,8 +146,7 @@ JsonDocument doc_image;  // Adjust size as needed
  * {"keypoints":[{"box":[0,95,120,120,239,240],"points":[[127,77],[153,62],[98,59],[182,91],[61,88],[222,209],[10,198],[241,249],[0,234],[193,220],[25,183],[179,293],[61,285],[135,256],[72,220],[116,271],[197,216]]}]}
  */
 static inline void AI_func(SSCMA& instance) {
-  if (!mutex_enter_timeout_ms(&myMutex, 1000))
-  {
+  if (!mutex_enter_timeout_ms(&myMutex, 1000)) {
     // pcSerial.println("Mutex Return");
     return;
   }
@@ -139,7 +154,7 @@ static inline void AI_func(SSCMA& instance) {
   if (!instance.invoke(1, false, true)) {
 
     doc_info.clear();
-    /* Boxes */d
+    /* Boxes */
     auto& boxes = instance.boxes();
     int index = 0;
     for (auto& box : boxes) {
@@ -211,6 +226,9 @@ static inline void AI_func(SSCMA& instance) {
  * @param instance
  */
 static inline void send_model_title(SSCMA& instance) {
+#if _LOG
+  pcSerial.println("request model title");
+#endif
   mutex_enter_blocking(&myMutex);
   String base64String = instance.info();
   mutex_exit(&myMutex);
