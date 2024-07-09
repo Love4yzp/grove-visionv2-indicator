@@ -6,9 +6,7 @@ set(IDF_TARGET esp32s3)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
-set(EXTRA_COMPONENT_DIRS ../../components)
-
-set(EXCLUDE_COMPONENTS LoRaWAN)
+set(EXTRA_COMPONENT_DIRS components)
 
 add_compile_options(-fdiagnostics-color=always -w)
 

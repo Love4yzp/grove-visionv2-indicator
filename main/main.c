@@ -80,6 +80,7 @@ static void __json_event_handler(void* handler_args, esp_event_base_t base, int3
     switch (id) {
     case VIEW_EVENT_IMG: {
         unsigned char* img_data = (unsigned char*)event_data;
+        // ESP_LOGI(TAG,"Base64 IMG: %s",event_data);
         size_t jpegImageSize = decode_base64_image(img_data, jpegImage);
         if (!jpegImageSize) { // >0
             ESP_LOGE(TAG, "Failed to decode image");
@@ -197,71 +198,138 @@ void app_main(void) {
     char* receivedStr = NULL;
     static char modelTitle[64] = {0};
 
-    for (;;) {
-        if (xQueueReceive(JsonQueue, &receivedStr, portMAX_DELAY) == pdPASS && receivedStr != NULL) {
-            cJSON* receivedJson = cJSON_Parse(receivedStr);
-            if (receivedJson != NULL) { // 负责解析，并发送给对应的 event 处理
-
-                /* Get the model name */
-                if (!is_name_geted) {
-                    cJSON* model_name = cJSON_GetObjectItem(receivedJson, "name");
-                    if (cJSON_IsString(model_name) && model_name->valuestring) {
-                        memcpy(modelTitle, model_name->valuestring, strlen(model_name->valuestring));
-                        esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_MODEL_NAME, &modelTitle[0],
-                                          sizeof(modelTitle), portMAX_DELAY);
-                        is_name_geted = true;
-                    }
+for (;;) {
+    if (xQueueReceive(JsonQueue, &receivedStr, portMAX_DELAY) == pdPASS && receivedStr != NULL) {
+        cJSON* receivedJson = cJSON_Parse(receivedStr);
+        if (receivedJson != NULL) {
+            /* Get the model name */
+            if (!is_name_geted) {
+                cJSON* model_name = cJSON_GetObjectItem(receivedJson, "name");
+                if (cJSON_IsString(model_name) && model_name->valuestring) {
+                    strncpy(modelTitle, model_name->valuestring, sizeof(modelTitle) - 1);
+                    ESP_LOGI(TAG, "Model name: %s", modelTitle);
+                    esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_MODEL_NAME, modelTitle,
+                                      sizeof(modelTitle), portMAX_DELAY);
+                    is_name_geted = true;
                 }
+            }
 
-                // Display the image
-                cJSON* jsonImage = cJSON_GetObjectItem(receivedJson, "img");
-                if (cJSON_IsString(jsonImage) && jsonImage->valuestring) {
-                    lv_memset_00(imageData, sizeof(imageData));
-                    memcpy(imageData, jsonImage->valuestring, strlen(jsonImage->valuestring));
-                    strncpy(imageData, jsonImage->valuestring, sizeof(imageData) - 1);
-                    esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_IMG, &imageData[0],
-                                      sizeof(imageData), portMAX_DELAY);
-                }
+            /* Display the image */
+            cJSON* jsonImage = cJSON_GetObjectItem(receivedJson, "img");
+            if (cJSON_IsString(jsonImage) && jsonImage->valuestring) {
+                lv_memset_00(imageData, sizeof(imageData));
+                // memcpy(imageData, jsonImage->valuestring, strlen(jsonImage->valuestring));
+                strncpy(imageData, jsonImage->valuestring, sizeof(imageData) - 1);
+                esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_IMG, imageData,
+                                  sizeof(imageData), portMAX_DELAY);
+            }
 
-                // ///// 画框的函数调用
-                cJSON* jsonBoxes = cJSON_GetObjectItem(receivedJson, "boxes");
-                if (cJSON_IsArray(jsonBoxes)) {
-                    ESP_LOGI(TAG, "sizeArray: %d", cJSON_GetArraySize(jsonBoxes));
-                    cJSON* boxJson = NULL;
-                    cJSON_ArrayForEach(boxJson, jsonBoxes) {
+            /* Handle boxes */
+            cJSON* jsonBoxes = cJSON_GetObjectItem(receivedJson, "boxes");
+            if (cJSON_IsArray(jsonBoxes)) {
+                int arraySize = cJSON_GetArraySize(jsonBoxes);
+                // ESP_LOGI(TAG, "sizeArray: %d", arraySize);
+                for (int i = 0; i < arraySize; i++) {
+                    cJSON* boxJson = cJSON_GetArrayItem(jsonBoxes, i);
+                    if (cJSON_IsArray(boxJson)) {
                         boxes_t box;
-                        for (int i = 0; i < cJSON_GetArraySize(boxJson); i++) {
-                            box.boxArray[i] = cJSON_GetArrayItem(boxJson, i)->valueint;
+                        for (int j = 0; j < cJSON_GetArraySize(boxJson); j++) {
+                            box.boxArray[j] = cJSON_GetArrayItem(boxJson, j)->valueint;
                         }
-                        esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_BOXES, (void*)&box,
+                        esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_BOXES, &box,
                                           sizeof(box), portMAX_DELAY);
                     }
                 }
+            }
 
-                /// Keypoints 的处理
-                cJSON* jsonKeypoints = cJSON_GetObjectItem(receivedJson, "keypoints");
-                if (cJSON_IsArray(jsonKeypoints)) {
-                    keypoints_array_t keypoints_array;
-                    if (ParseJsonKeypoints(jsonKeypoints, &keypoints_array.keypoints_array,
-                                           &keypoints_array.keypoints_count)) {
-                        if (keypoints_array.keypoints_array == NULL) {
-                            ESP_LOGE(TAG, "keypoints_array is NULL");
-                            continue;
-                        }
-                        int keypoints_count = keypoints_array.keypoints_count;
+            /* Handle keypoints */
+            cJSON* jsonKeypoints = cJSON_GetObjectItem(receivedJson, "keypoints");
+            if (cJSON_IsArray(jsonKeypoints)) {
+                keypoints_array_t keypoints_array;
+                if (ParseJsonKeypoints(jsonKeypoints, &keypoints_array.keypoints_array, &keypoints_array.keypoints_count)) {
+                    if (keypoints_array.keypoints_array != NULL) {
                         esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_KEYPOINTS, &keypoints_array,
                                           sizeof(keypoints_array_t), portMAX_DELAY);
+                    } else {
+                        ESP_LOGE(TAG, "keypoints_array is NULL");
                     }
                 }
-                cJSON_Delete(receivedJson);
             }
-            /* end of if */
-            else {
-                ESP_LOGE(TAG, "Invalid JSON string: %s", receivedStr);
-                vTaskDelay(1);
-            }
+
+            cJSON_Delete(receivedJson);
+        } else {
+            ESP_LOGE(TAG, "Invalid JSON string: %s", receivedStr);
+            vTaskDelay(1);
         }
-        /* end of for*/
     }
+}
+
+    // for (;;) {
+    //     if (xQueueReceive(JsonQueue, &receivedStr, portMAX_DELAY) == pdPASS && receivedStr != NULL) {
+    //         cJSON* receivedJson = cJSON_Parse(receivedStr);
+    //         if (receivedJson != NULL) { // 负责解析，并发送给对应的 event 处理
+
+    //             /* Get the model name */
+    //             if (!is_name_geted) {
+    //                 cJSON* model_name = cJSON_GetObjectItem(receivedJson, "name");
+    //                 if (cJSON_IsString(model_name) && model_name->valuestring) {
+    //                     memcpy(modelTitle, model_name->valuestring, strlen(model_name->valuestring));
+    //                     ESP_LOGI(TAG,"Model name: %s", modelTitle);
+    //                     esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_MODEL_NAME, &modelTitle[0],
+    //                                       sizeof(modelTitle), portMAX_DELAY);
+    //                     is_name_geted = true;
+    //                 }
+    //             }
+
+    //             // Display the image
+    //             cJSON* jsonImage = cJSON_GetObjectItem(receivedJson, "img");
+    //             if (cJSON_IsString(jsonImage) && jsonImage->valuestring) {
+    //                 lv_memset_00(imageData, sizeof(imageData));
+    //                 memcpy(imageData, jsonImage->valuestring, strlen(jsonImage->valuestring));
+    //                 strncpy(imageData, jsonImage->valuestring, sizeof(imageData) - 1);
+    //                 esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_IMG, &imageData[0],
+    //                                   sizeof(imageData), portMAX_DELAY);
+    //             }
+
+    //             // ///// 画框的函数调用
+    //             cJSON* jsonBoxes = cJSON_GetObjectItem(receivedJson, "boxes");
+    //             if (cJSON_IsArray(jsonBoxes)) {
+    //                 ESP_LOGI(TAG, "sizeArray: %d", cJSON_GetArraySize(jsonBoxes));
+    //                 cJSON* boxJson = NULL;
+    //                 cJSON_ArrayForEach(boxJson, jsonBoxes) {
+    //                     boxes_t box;
+    //                     for (int i = 0; i < cJSON_GetArraySize(boxJson); i++) {
+    //                         box.boxArray[i] = cJSON_GetArrayItem(boxJson, i)->valueint;
+    //                     }
+    //                     esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_BOXES, (void*)&box,
+    //                                       sizeof(box), portMAX_DELAY);
+    //                 }
+    //             }
+
+    //             /// Keypoints 的处理
+    //             cJSON* jsonKeypoints = cJSON_GetObjectItem(receivedJson, "keypoints");
+    //             if (cJSON_IsArray(jsonKeypoints)) {
+    //                 keypoints_array_t keypoints_array;
+    //                 if (ParseJsonKeypoints(jsonKeypoints, &keypoints_array.keypoints_array,
+    //                                        &keypoints_array.keypoints_count)) {
+    //                     if (keypoints_array.keypoints_array == NULL) {
+    //                         ESP_LOGE(TAG, "keypoints_array is NULL");
+    //                         continue;
+    //                     }
+    //                     int keypoints_count = keypoints_array.keypoints_count;
+    //                     esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_KEYPOINTS, &keypoints_array,
+    //                                       sizeof(keypoints_array_t), portMAX_DELAY);
+    //                 }
+    //             }
+    //             cJSON_Delete(receivedJson);
+    //         }
+    //         /* end of if */
+    //         else {
+    //             ESP_LOGE(TAG, "Invalid JSON string: %s", receivedStr);
+    //             vTaskDelay(1);
+    //         }
+    //     }
+    //     /* end of for*/
+    // }
     /* out of for */
 }
