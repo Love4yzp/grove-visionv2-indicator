@@ -27,7 +27,7 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_x(ui_Model_Name, 0);
     lv_obj_set_y(ui_Model_Name, 45);
     lv_obj_set_align(ui_Model_Name, LV_ALIGN_TOP_MID);
-    lv_label_set_text(ui_Model_Name, "Vision Face");
+    lv_label_set_text(ui_Model_Name, "Human Pose Detection");
     lv_obj_set_style_text_font(ui_Model_Name, &lv_font_montserrat_28, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_vision_image_1 = lv_img_create(ui_Screen1);
