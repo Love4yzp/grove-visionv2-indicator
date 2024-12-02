@@ -94,13 +94,13 @@ static void __json_event_handler(void* handler_args, esp_event_base_t base, int3
         lv_port_sem_give();
         break;
     }
-    case VIEW_EVENT_MODEL_NAME: {
-        char* p_data = ((char*)event_data);
-        lv_port_sem_take();
-        lv_label_set_text(ui_Model_Name, p_data);
-        lv_port_sem_give();
-        break;
-    }
+    // case VIEW_EVENT_MODEL_NAME: {
+    //     char* p_data = ((char*)event_data);
+    //     lv_port_sem_take();
+    //     lv_label_set_text(ui_Model_Name, p_data);
+    //     lv_port_sem_give();
+    //     break;
+    // }
     case VIEW_EVENT_BOXES: {
         boxes_t* box = (boxes_t*)event_data;
         lv_port_sem_take();
@@ -185,8 +185,8 @@ void app_main(void) {
 
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_IMG,
                                                              __json_event_handler, NULL, NULL));
-    ESP_ERROR_CHECK(esp_event_handler_instance_register_with(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_MODEL_NAME,
-                                                             __json_event_handler, NULL, NULL));
+    // ESP_ERROR_CHECK(esp_event_handler_instance_register_with(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_MODEL_NAME,
+    //                                                          __json_event_handler, NULL, NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_BOXES,
                                                              __json_event_handler, NULL, NULL));
     ESP_ERROR_CHECK(esp_event_handler_instance_register_with(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_KEYPOINTS,
@@ -203,16 +203,16 @@ for (;;) {
         cJSON* receivedJson = cJSON_Parse(receivedStr);
         if (receivedJson != NULL) {
             /* Get the model name */
-            if (!is_name_geted) {
-                cJSON* model_name = cJSON_GetObjectItem(receivedJson, "name");
-                if (cJSON_IsString(model_name) && model_name->valuestring) {
-                    strncpy(modelTitle, model_name->valuestring, sizeof(modelTitle) - 1);
-                    ESP_LOGI(TAG, "Model name: %s", modelTitle);
-                    esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_MODEL_NAME, modelTitle,
-                                      sizeof(modelTitle), portMAX_DELAY);
-                    is_name_geted = true;
-                }
-            }
+            // if (!is_name_geted) {
+            //     cJSON* model_name = cJSON_GetObjectItem(receivedJson, "name");
+            //     if (cJSON_IsString(model_name) && model_name->valuestring) {
+            //         strncpy(modelTitle, model_name->valuestring, sizeof(modelTitle) - 1);
+            //         ESP_LOGI(TAG, "Model name: %s", modelTitle);
+            //         esp_event_post_to(view_event_handle, VIEW_EVENT_BASE, VIEW_EVENT_MODEL_NAME, modelTitle,
+            //                           sizeof(modelTitle), portMAX_DELAY);
+            //         is_name_geted = true;
+            //     }
+            // }
 
             /* Display the image */
             cJSON* jsonImage = cJSON_GetObjectItem(receivedJson, "img");

@@ -38,3 +38,6 @@ tools/flash_firmware
 
 # config files
 *.toml
+
+# Clangd
+.cache

@@ -27,7 +27,7 @@ static void __btn_click_callback(void* arg)
     // }
     is_name_geted = false;
     // vTaskDelay(50/ portTICK_PERIOD_MS);
-    __cmd_send(PKT_TYPE_CMD_MODEL_TITLE, NULL, 0);
+    // __cmd_send(PKT_TYPE_CMD_MODEL_TITLE, NULL, 0);
     ESP_LOGI("btn", "clicked");
     // if( indicator_display_st_get()) {
     //     ESP_LOGI("btn", "click, off");
