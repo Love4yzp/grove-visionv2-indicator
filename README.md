@@ -22,6 +22,10 @@ sequenceDiagram
     grove vision v2->>+indicator: There you go(JPEG{based64})
 ```
 
+To get pose detection modle: [yolov8n_pose_256_vela_3_9_0x3BB000](https://github.com/HimaxWiseEyePlus/Seeed_Grove_Vision_AI_Module_V2/blob/main/model_zoo/tflm_yolov8_pose/yolov8n_pose_256_vela_3_9_0x3BB000.tflite), and then flash to the address: `0x400000` on the grove vision v2 via [SenseCraft-Web-Toolkit](https://seeed-studio.github.io/SenseCraft-Web-Toolkit/#/tool/tool).
+
+Don't forget to set the resolution of Vision v2 to `240x240` by sending AT command: `AT+SENSOR=1,1,0`.
+
 ## Prerequisites
 
 - Get and install ESP-IDF toolchain and its dependencies.
