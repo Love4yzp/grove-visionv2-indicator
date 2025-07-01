@@ -4,8 +4,6 @@
 
  * @author Spencer Yan
  *
- * @note Description of the file
- *
  * @copyright © 2024, Seeed Studio
  */
 
@@ -47,47 +45,12 @@ enum {
 };
 
 extern QueueHandle_t JsonQueue;
-// typedef union {
-//     struct {
-//         uint16_t x;
-//         uint16_t y;
-//         uint16_t w;
-//         uint16_t h;
-//         uint16_t score;
-//         uint16_t target;
-//     }
-//     uint16_t boxArray[6];
-// } boxes_t;
-// typedef struct
-// {
-//     uint16_t x;
-//     uint16_t y;
-//     uint16_t w;
-//     uint16_t h;
-//     uint16_t score;
-//     uint16_t target;
-
-// } boxes_t;
+extern bool is_name_geted;
 
 typedef struct {
     uint8_t target;
     uint8_t score;
 } classes_t;
-
-// typedef struct
-// {
-//     uint16_t x;
-//     uint16_t y;
-//     uint16_t z;
-//     uint8_t  score;
-//     uint8_t  target;
-// } point_t;
-
-// typedef struct
-// {
-//     boxes_t box;
-//     std::vector<point_t> points;
-// } keypoints_t;
 
 typedef struct {
     uint16_t prepocess;
