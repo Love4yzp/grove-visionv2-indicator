@@ -138,24 +138,23 @@ static void __json_event_handler(void* handler_args, esp_event_base_t base, int3
     case VIEW_EVENT_KEYPOINTS: {
         keypoints_array_t* keypoints_array = (keypoints_array_t*)event_data;
         keypoints_t* keypoints = keypoints_array->keypoints_array;
-
         int keypoints_count = keypoints_array->keypoints_count;
+
         right_canvs_delay = 0;
         is_right_canvas_cleaned = false;
         lv_port_sem_take();
         lv_canvas_fill_bg(canvas_right, lv_palette_main(LV_PALETTE_NONE), LV_OPA_COVER);
-        for (int i = 0; i < keypoints_count; i++) {
-            draw_keypoints(canvas_left, &keypoints[i]);
-            draw_keypoints(canvas_right, &keypoints[i]);
-        }
+        
+        draw_keypoints_array(canvas_left, keypoints, keypoints_count);
+        draw_keypoints_array(canvas_right, keypoints, keypoints_count);
+
         lv_port_sem_give();
 
-        for (int i = 0; i < keypoints_count; i++) {
-            if (keypoints[i].points != NULL) {
-                free_keypoints_array(keypoints[i].points);
-            }
-        }
-        free(keypoints);
+        free_all_keypoints(keypoints, keypoints_count);
+        break;
+    }
+    case VIEW_EVENT_ALL: {
+        ESP_LOGI(TAG, "VIEW_EVENT_ALL");
         break;
     }
     default:

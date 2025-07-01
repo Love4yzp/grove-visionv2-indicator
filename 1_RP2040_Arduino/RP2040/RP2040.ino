@@ -151,7 +151,7 @@ void setup() {
   // Initialize AI with retry mechanism
   bool ai_initialized = false;
   int retry_count = 0;
-  const int max_retries = 5;
+  const int max_retries = 10;
   
   while (!ai_initialized && retry_count < max_retries) {
     safe_serial_print("AI init attempt " + String(retry_count + 1) + "/" + String(max_retries));
@@ -175,7 +175,7 @@ void setup() {
     } else {
       retry_count++;
       safe_serial_print("AI initialization failed");
-      delay(2000);
+      delay(500);
     }
   }
   
